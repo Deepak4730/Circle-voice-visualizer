@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <met--bg-color"UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Voice Orb</title>
+  <style>
+    :root {
+      ---bg-color-bg-color: #FFC0DE;
+      --orb-color: #C654C3;
+      --panel-bg: rgba(255, 255, 255, 0.95);
+      --panel-text: #2d1633;
+      --panel-subtext: #705575;
+      --panel-border: rgba(0, 0, 0, 0.08);
+      --active-accent: #C654C3;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      transition: background-color 0.2s ease-out;
+    }
+
+    #canvasContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Customisation Bottom Sheet (Appears automatically when mic is off) */
+    .settings-panel {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%;
+      max-width: 440px;
+      background: var(--panel-bg);
+      border-radius: 28px 28px 0 0;
+      padding: 14px 20px max(24px, env(safe-area-inset-bottom, 24px));
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.16);
+      z-index: 30;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      color: var(--panel-text);
+      max-height: 38vh;
+      overflow-y: auto;
+    }
+
+    .settings-panel.open {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .panel-handle {
+      width: 36px;
+      height: 4px;
+      background: rgba(0, 0, 0, 0.16);
+      border-radius: 2px;
+      margin: 0 auto 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .panel-title {
+      font-size: 17px;
+      fofont-weightnt-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--panel-subtext);
+      margin-bottom: 8px;
+    }
+
+    /* Animation Styles Selection Row */
+    .styles-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .style-card {
+      padding: 10px 4px 8px;
+      border-radius: 16px;
+      border: 1.5px solid rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--panel-text);
+      outline: none;
+    }
+
+    .style-card:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .style-card.active {
+      border-color: var(--orb-color);
+      background: #ffffff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
+    }
+
+    .style-preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 24px;
+      width: 100%;
+    }
+
+    .preview-bar {
+      width: 4px;
+      background: var(--orb-color);
+      border-radius: 2px;
+      transition: height 0.2s ease, opacity 0.2s ease;
+    }
+
+    /* Living Mouth preview bars */
+    .style-card[data-style="mouth"] .b1 { height: 10px; }
+    .style-card[data-style="mouth"] .b2 { height: 22px; }
+    .style-card[data-style="mouth"] .b3 { height: 18px; }
+    .style-card[data-style="mouth"] .b4 { height: 10px; }
+
+    /* Liquid Energy preview bars */
+    .style-card[data-style="liquid"] .b1 { height: 12px; }
+    .style-card[data-style="liquid"] .b2 { height: 18px; }
+    .style-card[data-style="liquid"] .b3 { height: 15px; }
+    .style-card[data-style="liquid"] .b4 { height: 12px; }
+    .style-card[data-style="liquid"] .preview-bar {
+      box-shadow: 0 0 5px var(--orb-color);
+    }
+
+    /* Inner Glow preview bars */
+    .style-card[data-style="glow"] .b1 { height: 12px; }
+    .style-card[data-style="glow"] .b2 { height: 15px; }
+    .style-card[data-style="glow"] .b3 { height: 15px; }
+    .style-card[data-style="glow"] .b4 { height: 12px; }
+    .style-card[data-style="glow"] .preview-bar {
+      filter: drop-shadow(0 0 4px var(--orb-color));
+      opacity: 0.95;
+    }
+
+    .style-name {
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    /* Presets Row */
+    .presets-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .preset-pill {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--panel-text);
+      transition: background 0.15s;
+    }
+
+    .preset-pill:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .preset-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      flex-shrink: 0;
+    }
+
+    /* Target Selection Tabs: Background vs Main Circle */
+    .target-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tab-btn {
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1.5px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--panel-text);
+      text-align: left;
+    }
+
+    .tab-btn.active {
+      border-color: var(--orb-color);
+      background: #ffffff;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .tab-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+      flex-shrink: 0;
+    }
+
+    /* Color Editor Container */
+    .color-editor {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .preview-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .preview-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preview-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .preview-box input[type="color"] {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 60px;
+      height: 60px;
+      border: none;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .hex-display-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hex-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--panel-subtext);
+      font-weight: 600;
+    }
+
+    .hex-value {
+      font-size: 15px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 700;
+      color: var(--panel-text);
+    }
+
+    .reset-btn {
+      padding: 7px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: rgba(0, 0, 0, 0.03);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--panel-subtext);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .slider-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--panel-subtext);
+    }
+
+    .slider-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      color: var(--panel-text);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 18px;
+      border-radius: 10px;
+      outline: none;
+      margin: 0;
+      cursor: pointer;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid rgba(0, 0, 0, 0.2);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+    }
+
+    #hueSlider {
+      background: linear-gradient(to right,
+        #ff0000 0%, #ffff00 17%, #00ff00 33%,
+        #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%
+      );
+    }
+
+    #satSlider {
+      background: linear-gradient(to right, #808080, #C654C3);
+    }
+
+    #lightSlider {
+      background: linear-gradient(to right, #000000, #808080, #ffffff);
+    }
+  </style>
+</head>
+<body>
+  <!-- Canvas Visualization (Interactive button: Tap circle to start, Tap 4 lines to pause) -->
+  <div id="canvasContainer" title="Tap circle to start, tap 4 lines to stop">
+    <canvas id="orbCanvas"></canvas>
+  </div>
+
+  <!-- Colour Customisation Bottom Sheet (Appears automatically when mic is closed / paused) -->
+  <div id="settingsPanel" class="settings-panel open">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <div class="panel-title">Customisation</div>
+    </div>
+
+    <!-- Animation Style Section -->
+    <div class="section-label">Animation Style</div>
+    <div class="styles-row" id="stylesRow">
+      <button class="style-card active" id="styleMouth" data-style="mouth" title="Living Mouth (Default)">
+        <div class="style-preview">
+          <span class="preview-bar b1"></span>
+          <span class="preview-bar b2"></span>
+          <span class="preview-bar b3"></span>
+          <span class="preview-bar b4"></span>
+        </div>
+        <span class="style-name">Living Mouth</span>
+      </button>
+
+      <button class="style-card" id="styleLiquid" data-style="liquid" title="Liquid Energy">
+        <div class="style-preview">
+          <span class="preview-bar b1"></span>
+          <span class="preview-bar b2"></span>
+          <span class="preview-bar b3"></span>
+          <span class="preview-bar b4"></span>
+        </div>
+        <span class="style-name">Liquid Energy</span>
+      </button>
+
+      <button class="style-card" id="styleGlow" data-style="glow" title="Inner Glow">
+        <div class="style-preview">
+          <span class="preview-bar b1"></span>
+          <span class="preview-bar b2"></span>
+          <span class="preview-bar b3"></span>
+          <span class="preview-bar b4"></span>
+        </div>
+        <span class="style-name">Inner Glow</span>
+      </button>
+    </div>
+
+    <!-- Presets -->
+    <div class="presets-row">
+      <div class="preset-pill" id="presetRose">
+        <div class="preset-dot" style="background: #C654C3;"></div>
+        <span>Rose Orb</span>
+      </div>
+      <div class="preset-pill" id="presetClassic">
+        <div class="preset-dot" style="background: #1E1E1E;"></div>
+        <span>Classic</span>
+      </div>
+      <div class="preset-pill" id="presetMidnight">
+        <div class="preset-dot" style="background: #38BDF8;"></div>
+        <span>Midnight</span>
+      </div>
+    </div>
+
+    <!-- Target Tabs: Background vs Main Circle -->
+    <div class="target-tabs">
+      <button id="tabBg" class="tab-btn">
+        <div id="swatchBg" class="tab-swatch" style="background-color: #FFC0DE;"></div>
+        <span>Background</span>
+      </button>
+      <button id="tabOrb" class="tab-btn active">
+        <div id="swatchOrb" class="tab-swatch" style="background-color: #C654C3;"></div>
+        <span>Main Circle</span>
+      </button>
+    </div>
+
+    <!-- Color Editor -->
+    <div class="color-editor">
+      <div class="preview-row">
+        <div class="preview-left">
+          <div id="previewSwatch" class="preview-box" title="Tap for native picker">
+            <input type="color" id="nativeColorPicker" value="#C654C3">
+          </div>
+          <div class="hex-display-group">
+            <span class="hex-title" id="activeTargetLabel">Main Circle</span>
+            <span class="hex-value" id="hexText">#C654C3</span>
+          </div>
+        </div>
+        <button id="resetColorBtn" class="reset-btn" title="Reset this color">
+          Reset
+        </button>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-item">
+          <div class="slider-label-row">
+            <span>Colour Spectrum (Hue)</span>
+            <span class="slider-val" id="hueVal">301°</span>
+          </div>
+          <input type="range" id="hueSlider" min="0" max="360" value="301">
+        </div>
+
+        <div class="slider-item">
+          <div class="slider-label-row">
+            <span>Intensity (Saturation)</span>
+            <span class="slider-val" id="satVal">51%</span>
+          </div>
+          <input type="range" id="satSlider" min="0" max="100" value="51">
+        </div>
+
+        <div class="slider-item">
+          <div class="slider-label-row">
+            <span>Grayscale &amp; Lightness (Black to White)</span>
+            <span class="slider-val" id="lightVal">55%</span>
+          </div>
+          <input type="range" id="lightSlider" min="0" max="100" value="55">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =====================================================================
+       Minimal Voice-Reactive Orb
+       Circle Button Turns Mic ON • 4 Lines Button Turns Mic OFF
+       Automatic Customisation Menu on Pause • Zero Distraction When Active
+       ===================================================================== */
+
+    const DEFAULT_BG = '#FFC0DE';
+    const DEFAULT_ORB = '#C654C3';
+
+    window.appAudioState = {
+      bgColor: DEFAULT_BG,
+      orbColor: DEFAULT_ORB,
+      activeTarget: 'orb',
+      animationStyle: 'mouth',
+      isMicActive: false,
+      audioIntensity: 0.0,
+      targetIntensity: 0.0,
+      rawRms: 0.0,
+      morphProgress: 0.0,
+      targetMorph: 0.0,
+      audioContext: null,
+      audioSource: null,
+      analyser: null,
+      dummyGain: null,
+      mediaStream: null,
+      timeData: null,
+      freqData: null,
+      isPressed: false,
+      pressScale: 1.0,
+      lineIntensities: [0.0, 0.0, 0.0, 0.0],
+      lineTargets: [0.0, 0.0, 0.0, 0.0]
+    };
+
+    const state = window.appAudioState;
+
+    const colorHSL = {
+      bg: { h: 330, s: 100, l: 87 },
+      orb: { h: 301, s: 51, l: 55 }
+    };
+
+    const canvasContainer = document.getElementById('canvasContainer');
+    const canvas = document.getElementById('orbCanvas');
+    const ctx = canvas.getContext('2d');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const tabBg = document.getElementById('tabBg');
+    const tabOrb = document.getElementById('tabOrb');
+    const swatchBg = document.getElementById('swatchBg');
+    const swatchOrb = document.getElementById('swatchOrb');
+    const previewSwatch = document.getElementById('previewSwatch');
+    const nativeColorPicker = document.getElementById('nativeColorPicker');
+    const activeTargetLabel = document.getElementById('activeTargetLabel');
+    const hexText = document.getElementById('hexText');
+    const resetColorBtn = document.getElementById('resetColorBtn');
+    const hueSlider = document.getElementById('hueSlider');
+    const satSlider = document.getElementById('satSlider');
+    const lightSlider = document.getElementById('lightSlider');
+    const hueVal = document.getElementById('hueVal');
+    const satVal = document.getElementById('satVal');
+    const lightVal = document.getElementById('lightVal');
+    const presetRose = document.getElementById('presetRose');
+    const presetClassic = document.getElementById('presetClassic');
+    const presetMidnight = document.getElementById('presetMidnight');
+
+    function hslToHex(h, s, l) {
+      s /= 100; l /= 100;
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = l - c / 2;
+      let r = 0, g = 0, b = 0;
+      if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+      else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+      else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+      else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+      else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+      else if (300 <= h <= 360) { r = c; g = 0; b = x; }
+
+      const toHex = n => {
+        const hex = Math.round((n + m) * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+    }
+
+    function hexToHsl(hex) {
+      let c = hex.replace('#', '');
+      const r = parseInt(c.substring(0, 2), 16) / 255;
+      const g = parseInt(c.substring(2, 4), 16) / 255;
+      const b = parseInt(c.substring(4, 6), 16) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h = 0, s = 0, l = (max + min) / 2;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+
+    function applyColors() {
+      document.documentElement.style.setProperty('--bg-color', state.bgColor);
+      document.documentElement.style.setProperty('--orb-color', state.orbColor);
+      swatchBg.style.backgroundColor = state.bgColor;
+      swatchOrb.style.backgroundColor = state.orbColor;
+      updateEditorUI();
+      savePreferences();
+    }
+
+    function updateEditorUI() {
+      const isBg = state.activeTarget === 'bg';
+      const curHex = isBg ? state.bgColor : state.orbColor;
+      const hsl = isBg ? colorHSL.bg : colorHSL.orb;
+
+      hexText.textContent = curHex;
+      previewSwatch.style.backgroundColor = curHex;
+      nativeColorPicker.value = curHex;
+      activeTargetLabel.textContent = isBg ? 'Background' : 'Main Circle';
+
+      hueSlider.value = hsl.h; hueVal.textContent = hsl.h + '°';
+      satSlider.value = hsl.s; satVal.textContent = hsl.s + '%';
+      lightSlider.value = hsl.l; lightVal.textContent = hsl.l + '%';
+
+      satSlider.style.background = `linear-gradient(to right, #808080, ${hslToHex(hsl.h, 100, 50)})`;
+      lightSlider.style.background = `linear-gradient(to right, #000000, ${hslToHex(hsl.h, hsl.s, 50)}, #ffffff)`;
+    }
+
+    function onSliderChange() {
+      const isBg = state.activeTarget === 'bg';
+      const hsl = isBg ? colorHSL.bg : colorHSL.orb;
+      hsl.h = parseInt(hueSlider.value, 10);
+      hsl.s = parseInt(satSlider.value, 10);
+      hsl.l = parseInt(lightSlider.value, 10);
+      const newHex = hslToHex(hsl.h, hsl.s, hsl.l);
+      if (isBg) state.bgColor = newHex; else state.orbColor = newHex;
+      applyColors();
+    }
+
+    function updateUIState() {
+      if (state.isMicActive) {
+        // Voice is Active: Distraction-free, menu hidden, zero buttons or options on screen
+        settingsPanel.classList.remove('open');
+      } else {
+        // Voice is Stopped/Paused: Customisation menu automatically appears
+        settingsPanel.classList.add('open');
+      }
+    }
+
+    /* =====================================================================
+       Real Microphone Web Audio & Native Pipeline
+       ===================================================================== */
+    async function startMicrophone() {
+      state.isMicActive = true;
+      state.targetMorph = 1.0;
+      updateUIState();
+
+      if (window.AndroidBridge && window.AndroidBridge.requestRecordAudioPermission) {
+        try { window.AndroidBridge.requestRecordAudioPermission(); } catch (e) {}
+      }
+      if (window.AndroidBridge && window.AndroidBridge.startAudioRecord) {
+        try { window.AndroidBridge.startAudioRecord(); } catch (e) {}
+      }
+
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('getUserMedia not available');
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: false,
+            autoGainControl: true
+          }
+        });
+
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!state.audioContext) {
+          state.audioContext = new AudioContextClass();
+        }
+        if (state.audioContext.state === 'suspended') {
+          await state.audioContext.resume();
+        }
+
+        state.mediaStream = stream;
+        state.audioSource = state.audioContext.createMediaStreamSource(stream);
+        state.analyser = state.audioContext.createAnalyser();
+        state.analyser.fftSize = 512;
+        state.analyser.smoothingTimeConstant = 0.2;
+
+        state.dummyGain = state.audioContext.createGain();
+        state.dummyGain.gain.value = 0.0;
+
+        state.audioSource.connect(state.analyser);
+        state.analyser.connect(state.dummyGain);
+        state.dummyGain.connect(state.audioContext.destination);
+
+        state.timeData = new Float32Array(state.analyser.fftSize);
+        state.freqData = new Uint8Array(state.analyser.frequencyBinCount);
+      } catch (err) {
+        console.warn('Web Audio Notice:', err);
+      }
+    }
+
+    function stopMicrophone() {
+      if (state.mediaStream) {
+        state.mediaStream.getTracks().forEach(t => t.stop());
+        state.mediaStream = null;
+      }
+      if (state.audioSource) {
+        try { state.audioSource.disconnect(); } catch (e) {}
+        state.audioSource = null;
+      }
+      if (state.audioContext) {
+        try { state.audioContext.close(); } catch (e) {}
+        state.audioContext = null;
+      }
+      state.analyser = null;
+      state.timeData = null;
+      state.freqData = null;
+
+      if (window.AndroidBridge && window.AndroidBridge.stopAudioRecord) {
+        try { window.AndroidBridge.stopAudioRecord(); } catch (e) {}
+      }
+
+      state.isMicActive = false;
+      state.targetMorph = 0.0;
+      state.targetIntensity = 0.0;
+      state.lineTargets = [0.0, 0.0, 0.0, 0.0];
+      state.rawRms = 0.0;
+      updateUIState();
+    }
+
+    function toggleMicrophone() {
+      if (state.isMicActive) {
+        stopMicrophone();
+      } else {
+        startMicrophone();
+      }
+    }
+
+    // Native Bridge callback
+    window.onNativeAudioLevel = function(rms) {
+      if (!state.isMicActive) return;
+      handleAudioInput(rms);
+    };
+
+    let ambientFloor = 0.002;
+
+    // 4 Speech Frequency Bands (Fs ~48kHz, fftSize=512 -> ~93.75Hz per bin):
+    // Band 0: Fundamental / Low vocal resonance (bins 1..4, ~90-375Hz)
+    // Band 1: Lower vowel formants (bins 4..12, ~375-1120Hz)
+    // Band 2: Higher vowel formants & articulation (bins 12..28, ~1120-2620Hz)
+    // Band 3: Sibilants, fricatives, crisp highs (bins 28..68, ~2620-6370Hz)
+    const bandBins = [
+      [1, 4],
+      [4, 12],
+      [12, 28],
+      [28, 68]
+    ];
+
+    function handleAudioInput(rms) {
+      state.rawRms = rms;
+
+      if (rms > 0.0001 && rms < 0.015) {
+        ambientFloor = ambientFloor * 0.98 + rms * 0.02;
+      }
+      const noiseThreshold = Math.max(0.0018, ambientFloor * 1.25);
+
+      let overallIntensity = 0.0;
+      if (rms > noiseThreshold) {
+        const diff = rms - noiseThreshold;
+        const norm = Math.min(1.0, diff / 0.024);
+        overallIntensity = Math.pow(norm, 0.68);
+      }
+      state.targetIntensity = overallIntensity;
+
+      // Extract frequency spectrum if Web Audio analyser is active
+      const freqEnergies = [0.0, 0.0, 0.0, 0.0];
+      let hasFreqData = false;
+
+      if (state.analyser && state.freqData) {
+        state.analyser.getByteFrequencyData(state.freqData);
+        let totalFreqSum = 0;
+        for (let k = 0; k < 4; k++) {
+          const [bStart, bEnd] = bandBins[k];
+          let bSum = 0;
+          for (let b = bStart; b < bEnd; b++) {
+            bSum += state.freqData[b];
+          }
+          const avg = bSum / (bEnd - bStart);
+          totalFreqSum += avg;
+          // Soft thresholding and normalization
+          const norm = Math.max(0, (avg - 16) / 145);
+          freqEnergies[k] = Math.min(1.0, Math.pow(norm, 0.85));
+        }
+        if (totalFreqSum > 10) {
+          hasFreqData = true;
+        }
+      }
+
+      // If frequency data is unavailable (or pure native bridge), synthesize differentiated acoustic profile
+      const nowSec = performance.now() * 0.001;
+      if (!hasFreqData && overallIntensity > 0) {
+        const speeds = [10.5, 14.0, 12.0, 15.5];
+        const phases = [0.0, 1.9, 3.7, 5.4];
+        for (let k = 0; k < 4; k++) {
+          const mod = 0.85 + 0.15 * Math.sin(nowSec * speeds[k] + phases[k]);
+          freqEnergies[k] = overallIntensity * mod;
+        }
+      }
+
+      // Mouth opening dynamics:
+      // At loud speech (overallIntensity -> 1), the two middle lines expand significantly
+      // more than outer lines (creating the distinct look of a mouth opening wide).
+      // At low speaking volumes, all 4 lines stay close in height with subtle individual differences.
+      const mouthCurve = Math.pow(overallIntensity, 1.25);
+      const dynamicWeights = [
+        0.84 - 0.20 * mouthCurve,  // Line 0 (Outer Left): ~0.84 down to ~0.64
+        0.98 + 0.38 * mouthCurve,  // Line 1 (Middle Left): ~0.98 up to ~1.36
+        0.96 + 0.36 * mouthCurve,  // Line 2 (Middle Right): ~0.96 up to ~1.32
+        0.82 - 0.22 * mouthCurve   // Line 3 (Outer Right): ~0.82 down to ~0.60
+      ];
+
+      for (let k = 0; k < 4; k++) {
+        if (overallIntensity <= 0.001) {
+          state.lineTargets[k] = 0.0;
+        } else {
+          // Combine 60% frequency band + 40% overall volume envelope
+          const energy = hasFreqData ? freqEnergies[k] : overallIntensity;
+          const blended = overallIntensity * 0.40 + energy * 0.60;
+          state.lineTargets[k] = Math.min(1.4, blended * dynamicWeights[k]);
+        }
+      }
+    }
+
+    function updateAudioMeasurement() {
+      if (!state.isMicActive) {
+        return;
+      }
+
+      let rms = 0;
+      if (state.analyser && state.timeData) {
+        state.analyser.getFloatTimeDomainData(state.timeData);
+        let sum = 0;
+        const len = state.timeData.length;
+        for (let i = 0; i < len; i++) {
+          const val = state.timeData[i];
+          sum += val * val;
+        }
+        rms = Math.sqrt(sum / len);
+      } else {
+        rms = state.rawRms;
+      }
+      handleAudioInput(rms);
+    }
+
+    /* =====================================================================
+       Canvas 2D Rendering & Interactive Button Physics
+       ===================================================================== */
+    let canvasWidth = 0, canvasHeight = 0, dpr = 1;
+
+    function resizeCanvas() {
+      dpr = window.devicePixelRatio || 1;
+      canvasWidth = window.innerWidth || document.documentElement.clientWidth || 360;
+      canvasHeight = window.innerHeight || document.documentElement.clientHeight || 640;
+      canvas.width = Math.round(canvasWidth * dpr);
+      canvas.height = Math.round(canvasHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
+
+    function drawRoundedBar(ctx, cx, cy, barWidth, barHeight, fill) {
+      // 4. Calculate corner radius dynamically as min(barWidth / 2, barHeight / 2)
+      const r = Math.min(barWidth / 2, barHeight / 2);
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+
+      if (barHeight <= barWidth + 0.001) {
+        // 6. Minimum-height state: clean, compact dot
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      } else {
+        // 2 & 5. Single continuous rounded rectangle, expanding symmetrically upward & downward
+        const halfStraight = (barHeight - barWidth) / 2;
+        ctx.arc(cx, cy - halfStraight, r, Math.PI, 0, false);
+        ctx.arc(cx, cy + halfStraight, r, 0, Math.PI, false);
+        ctx.closePath();
+      }
+      ctx.fill();
+    }
+
+    // Compatibility alias
+    function drawCapsule(ctx, cx, cy, width, height, color) {
+      drawRoundedBar(ctx, cx, cy, width, height, color);
+    }
+
+    // Current visual center for the orb/bars - ALWAYS centered at screen center across all styles
+    function getCurrentCenter() {
+      return {
+        cx: canvasWidth / 2,
+        cy: canvasHeight / 2
+      };
+    }
+
+    // Geometry hit-testing for interactive circle/bars button
+    function isPointInOrb(px, py) {
+      const { cx, cy } = getCurrentCenter();
+      const minDim = Math.min(canvasWidth, canvasHeight);
+      const singleDiameter = minDim * 0.38;
+      const dotDiameter = minDim * 0.105;
+      const spacing = dotDiameter * 1.36;
+
+      if (!state.isMicActive) {
+        // Circle button target (with generous touch margin)
+        const hitRadius = (singleDiameter / 2) * 1.35;
+        const dx = px - cx;
+        const dy = py - cy;
+        return (dx * dx + dy * dy) <= (hitRadius * hitRadius);
+      } else {
+        // 4 lines button target (with generous touch margin)
+        const totalW = spacing * 3 + dotDiameter * 2.2;
+        const totalH = singleDiameter * 1.6;
+        return px >= (cx - totalW / 2) && px <= (cx + totalW / 2) &&
+               py >= (cy - totalH / 2) && py <= (cy + totalH / 2);
+      }
+    }
+
+    let animFrameId = null;
+    let lastTime = performance.now();
+
+    function render(now) {
+      if (animFrameId) {
+        cancelAnimationFrame(animFrameId);
+      }
+      animFrameId = requestAnimationFrame(render);
+      const dt = Math.min(0.06, (now - lastTime) / 1000);
+      lastTime = now;
+
+      updateAudioMeasurement();
+
+      // Smooth overall audio intensity
+      if (state.targetIntensity > state.audioIntensity) {
+        state.audioIntensity += (state.targetIntensity - state.audioIntensity) * (1 - Math.exp(-28 * dt));
+      } else {
+        state.audioIntensity += (state.targetIntensity - state.audioIntensity) * (1 - Math.exp(-12 * dt));
+      }
+      if (state.audioIntensity < 0.002) {
+        state.audioIntensity = 0.0;
+      }
+
+      // Smooth each of the 4 lines independently with natural attack and decay rates
+      for (let k = 0; k < 4; k++) {
+        const target = state.lineTargets[k];
+        const current = state.lineIntensities[k];
+        if (target > current) {
+          // Fast attack, slightly varied per line for acoustic liveliness
+          const attackRate = 28 + (k % 2) * 4;
+          state.lineIntensities[k] += (target - current) * (1 - Math.exp(-attackRate * dt));
+        } else {
+          // Smooth, organic release
+          const decayRate = 12 + (k % 2) * 2;
+          state.lineIntensities[k] += (target - current) * (1 - Math.exp(-decayRate * dt));
+        }
+        if (state.lineIntensities[k] < 0.001) {
+          state.lineIntensities[k] = 0.0;
+        }
+      }
+
+      state.morphProgress += (state.targetMorph - state.morphProgress) * (1 - Math.exp(-12 * dt));
+      if (Math.abs(state.morphProgress - state.targetMorph) < 0.001) {
+        state.morphProgress = state.targetMorph;
+      }
+
+      // Smooth tactile press scale spring animation
+      const targetPressScale = state.isPressed ? 0.93 : 1.0;
+      state.pressScale += (targetPressScale - state.pressScale) * (1 - Math.exp(-30 * dt));
+
+      // Reset any composite states and clean clear canvas
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+      ctx.globalAlpha = 1.0;
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      const { cx, cy } = getCurrentCenter();
+      const minDim = Math.min(canvasWidth, canvasHeight);
+
+      const baseSingleDiameter = minDim * 0.38;
+      const singleDiameter = baseSingleDiameter * state.pressScale;
+      const dotDiameter = minDim * 0.105 * state.pressScale;
+      const spacing = dotDiameter * 1.36;
+      const maxWaveStretch = singleDiameter * 1.30;
+
+      // Smooth breathing: gentle scale oscillation at rest
+      const breathing = Math.sin(now * 0.0025) * 0.035;
+      const m = state.morphProgress;
+      const currentDiameter = singleDiameter * (1 + breathing * (1 - m));
+
+      if (m < 0.002) {
+        // STATE 1: Circle at rest (Clicking turns mic on)
+        ctx.save();
+        ctx.fillStyle = state.orbColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, currentDiameter / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        // STATE 2: 4 lines responding to live voice with selected animation style
+        ctx.save();
+
+        // When transitioning between single circle and 4 bars (m < 0.25), smoothly dissolve circle
+        if (m < 0.25) {
+          const circleAlpha = Math.max(0, 1 - m / 0.25);
+          ctx.save();
+          ctx.globalAlpha = circleAlpha;
+          ctx.fillStyle = state.orbColor;
+          ctx.beginPath();
+          ctx.arc(cx, cy, (currentDiameter / 2) * (1 - 0.15 * (m / 0.25)), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.globalAlpha = Math.min(1.0, m / 0.25);
+        }
+
+        if (state.animationStyle === 'liquid') {
+          renderLiquidEnergy(ctx, cx, cy, m, now, dt, currentDiameter, dotDiameter, spacing, maxWaveStretch);
+        } else if (state.animationStyle === 'glow') {
+          renderInnerGlow(ctx, cx, cy, m, now, dt, currentDiameter, dotDiameter, spacing, maxWaveStretch);
+        } else {
+          renderLivingMouth(ctx, cx, cy, m, now, dt, currentDiameter, dotDiameter, spacing, maxWaveStretch);
+        }
+        ctx.restore();
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       STYLE 1: Living Mouth (Default)
+       - Preserves original 4-line mouth opening curve & multi-band response
+       - Continuous organic breathing during silence
+       - Symmetrically expanding single rounded rectangle from compact dot
+       --------------------------------------------------------------------- */
+    function renderLivingMouth(ctx, cx, cy, m, now, dt, singleDiameter, dotDiameter, spacing, maxWaveStretch) {
+      const breathSpeed = 0.0024;
+      const breathHarmonics = [
+        Math.sin(now * breathSpeed),
+        Math.sin(now * (breathSpeed * 1.08) + 0.55),
+        Math.sin(now * (breathSpeed * 0.94) + 1.15),
+        Math.sin(now * breathSpeed + 1.70)
+      ];
+
+      // Smooth expansion progress from compact dot (dotDiameter) to full bar height
+      const expandProgress = m < 0.25 ? 0.0 : Math.min(1.0, (m - 0.25) / 0.75);
+
+      for (let i = 0; i < 4; i++) {
+        // Idle breathing height (never freezes into stationary dots)
+        const idleBreathHeight = dotDiameter * (1.18 + 0.18 * breathHarmonics[i]);
+
+        // Live voice extension based on independent line intensity
+        const voiceExtension = state.lineIntensities[i] * maxWaveStretch;
+
+        // Target line height: breathing baseline + smooth voice expansion
+        const targetLineH = idleBreathHeight + voiceExtension;
+
+        // 5. Keep each bar centered on its original position
+        const posX = cx + (i - 1.5) * spacing;
+
+        // 3. Keep the bar width consistent throughout transition (no bulging)
+        const barWidth = dotDiameter;
+
+        // Animate height smoothly from minimum dot size to expanded height
+        const barHeight = dotDiameter + (targetLineH - dotDiameter) * expandProgress;
+
+        // 2 & 4. Draw as single continuous rounded rectangle, expanding symmetrically
+        drawRoundedBar(ctx, posX, cy, barWidth, barHeight, state.orbColor);
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       STYLE 2: Liquid Energy
+       - Four fluid vertical bars with independent flowing liquid motion
+       - Preserves alignment, spacing, rounded ends, and proportional dimensions
+       - Smooth luminous liquid core gradient strictly within the bar body
+       - Zero shadows, zero duplicate copies, zero stacked layers
+       --------------------------------------------------------------------- */
+    function renderLiquidEnergy(ctx, cx, cy, m, now, dt, singleDiameter, dotDiameter, spacing, maxWaveStretch) {
+      const hsl = colorHSL.orb;
+      const coreLightness = Math.min(92, hsl.l + 18);
+      const coreColor = hslToHex(hsl.h, Math.max(20, hsl.s - 5), coreLightness);
+
+      // Continuous, organic fluid undulation speeds and phase offsets per line
+      const liquidSpeeds = [0.0029, 0.0035, 0.0026, 0.0032];
+      const liquidPhases = [0.0, 1.45, 2.80, 4.25];
+
+      const expandProgress = m < 0.25 ? 0.0 : Math.min(1.0, (m - 0.25) / 0.75);
+
+      for (let i = 0; i < 4; i++) {
+        // Gentle fluid wave during silence (organic, never frozen)
+        const fluidWave = Math.sin(now * liquidSpeeds[i] + liquidPhases[i]);
+        const idleHeight = dotDiameter * (1.18 + 0.20 * fluidWave);
+
+        // Fluid vertical stretch responding to voice
+        const voiceExtension = state.lineIntensities[i] * maxWaveStretch;
+        const targetLineH = idleHeight + voiceExtension;
+
+        // 5. Centered on original position
+        const posX = cx + (i - 1.5) * spacing;
+
+        // 3. Consistent width throughout
+        const barWidth = dotDiameter;
+        const barHeight = dotDiameter + (targetLineH - dotDiameter) * expandProgress;
+
+        // Smooth fluid liquid core gradient contained cleanly within the capsule
+        const halfH = barHeight / 2;
+        const grad = ctx.createLinearGradient(posX, cy - halfH, posX, cy + halfH);
+        grad.addColorStop(0.0, state.orbColor);
+        grad.addColorStop(0.5, coreColor);
+        grad.addColorStop(1.0, state.orbColor);
+
+        // Exactly one single continuous rounded rectangle drawn per line
+        drawRoundedBar(ctx, posX, cy, barWidth, barHeight, grad);
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       STYLE 3: Inner Glow
+       - Four minimal vertical lines with refined, luminous appearance
+       - Glow intensity responds directly to voice volume via dynamic luminance
+       - Subtle continuous breathing glow during silence
+       - Zero shadows, zero duplicate copies, zero stacked layers
+       --------------------------------------------------------------------- */
+    function renderInnerGlow(ctx, cx, cy, m, now, dt, singleDiameter, dotDiameter, spacing, maxWaveStretch) {
+      const breathSpeed = 0.0022;
+      const breathHarmonic = Math.sin(now * breathSpeed);
+
+      const expandProgress = m < 0.25 ? 0.0 : Math.min(1.0, (m - 0.25) / 0.75);
+
+      for (let i = 0; i < 4; i++) {
+        const phaseOffset = [0.0, 0.65, 1.25, 1.85][i];
+        const barWave = Math.sin(now * breathSpeed + phaseOffset);
+        const idleH = dotDiameter * (1.18 + 0.18 * barWave);
+
+        const voiceExtension = state.lineIntensities[i] * maxWaveStretch;
+        const targetLineH = idleH + voiceExtension;
+
+        // 5. Centered on original position
+        const posX = cx + (i - 1.5) * spacing;
+
+        // 3. Consistent width throughout
+        const barWidth = dotDiameter;
+        const barHeight = dotDiameter + (targetLineH - dotDiameter) * expandProgress;
+
+        // Dynamic volume-responsive glow via bar luminance:
+        // - Silence: subtle continuous breathing glow
+        // - Louder speech: radiant, luminous bloom
+        const voiceGlow = state.lineIntensities[i];
+        const idleGlow = 0.5 + 0.5 * breathHarmonic;
+        const dynamicGlow = Math.min(1.0, 0.18 * idleGlow + voiceGlow * 0.82);
+
+        const hsl = colorHSL.orb;
+        const glowLightness = Math.min(94, hsl.l + Math.round(26 * dynamicGlow));
+        const glowSat = Math.max(12, hsl.s - Math.round(16 * dynamicGlow));
+        const glowingColor = hslToHex(hsl.h, glowSat, glowLightness);
+
+        // Exactly one single continuous rounded rectangle drawn per line
+        drawRoundedBar(ctx, posX, cy, barWidth, barHeight, glowingColor);
+      }
+    }
+
+    // Pointer & Touch Events on Canvas for Instant Tactile Response
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    canvasContainer.addEventListener('pointerdown', (e) => {
+      const pos = getPointerPos(e);
+      if (isPointInOrb(pos.x, pos.y) || state.isMicActive || pos.y < canvasHeight * 0.52) {
+        state.isPressed = true;
+      }
+    });
+
+    window.addEventListener('pointerup', () => {
+      state.isPressed = false;
+    });
+
+    window.addEventListener('pointercancel', () => {
+      state.isPressed = false;
+    });
+
+    // Primary click / tap event on the Canvas Orb:
+    // - Circle acts as Start Button
+    // - 4 Lines act as Stop/Pause Button
+    canvasContainer.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const pos = getPointerPos(e);
+
+      if (state.isMicActive) {
+        // When mic is ON: Clicking anywhere (including directly on the 4 lines) immediately pauses/stops mic
+        stopMicrophone();
+      } else {
+        // When mic is OFF: Clicking directly on the circle (or anywhere outside the menu) starts mic
+        if (isPointInOrb(pos.x, pos.y) || pos.y < canvasHeight * 0.52) {
+          startMicrophone();
+        }
+      }
+    });
+
+    // Presets
+    presetRose.addEventListener('click', () => {
+      state.bgColor = '#FFC0DE'; colorHSL.bg = hexToHsl('#FFC0DE');
+      state.orbColor = '#C654C3'; colorHSL.orb = hexToHsl('#C654C3');
+      applyColors();
+    });
+
+    presetClassic.addEventListener('click', () => {
+      state.bgColor = '#FFFFFF'; colorHSL.bg = hexToHsl('#FFFFFF');
+      state.orbColor = '#1E1E1E'; colorHSL.orb = hexToHsl('#1E1E1E');
+      applyColors();
+    });
+
+    presetMidnight.addEventListener('click', () => {
+      state.bgColor = '#0F172A'; colorHSL.bg = hexToHsl('#0F172A');
+      state.orbColor = '#38BDF8'; colorHSL.orb = hexToHsl('#38BDF8');
+      applyColors();
+    });
+
+    tabBg.addEventListener('click', () => {
+      state.activeTarget = 'bg';
+      tabBg.classList.add('active'); tabOrb.classList.remove('active');
+      updateEditorUI();
+    });
+    tabOrb.addEventListener('click', () => {
+      state.activeTarget = 'orb';
+      tabOrb.classList.add('active'); tabBg.classList.remove('active');
+      updateEditorUI();
+    });
+
+    hueSlider.addEventListener('input', onSliderChange);
+    satSlider.addEventListener('input', onSliderChange);
+    lightSlider.addEventListener('input', onSliderChange);
+    nativeColorPicker.addEventListener('input', (e) => {
+      const isBg = state.activeTarget === 'bg';
+      const hex = e.target.value.toUpperCase();
+      if (isBg) { state.bgColor = hex; colorHSL.bg = hexToHsl(hex); }
+      else { state.orbColor = hex; colorHSL.orb = hexToHsl(hex); }
+      applyColors();
+    });
+
+    resetColorBtn.addEventListener('click', () => {
+      if (state.activeTarget === 'bg') {
+        state.bgColor = DEFAULT_BG; colorHSL.bg = hexToHsl(DEFAULT_BG);
+      } else {
+        state.orbColor = DEFAULT_ORB; colorHSL.orb = hexToHsl(DEFAULT_ORB);
+      }
+      applyColors();
+    });
+
+    // Animation Style Selection
+    const styleCards = document.querySelectorAll('.style-card');
+
+    function selectAnimationStyle(styleKey) {
+      if (!['mouth', 'liquid', 'glow'].includes(styleKey)) return;
+      state.animationStyle = styleKey;
+      styleCards.forEach(card => {
+        if (card.dataset.style === styleKey) {
+          card.classList.add('active');
+        } else {
+          card.classList.remove('active');
+        }
+      });
+      savePreferences();
+    }
+
+    styleCards.forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectAnimationStyle(card.dataset.style);
+      });
+    });
+
+    function loadSavedPreferences() {
+      try {
+        const savedStyle = localStorage.getItem('voice_orb_style');
+        if (savedStyle && ['mouth', 'liquid', 'glow'].includes(savedStyle)) {
+          selectAnimationStyle(savedStyle);
+        }
+        const savedBg = localStorage.getItem('voice_orb_bg');
+        if (savedBg && /^#[0-9A-Fa-f]{6}$/.test(savedBg)) {
+          state.bgColor = savedBg;
+          colorHSL.bg = hexToHsl(savedBg);
+        }
+        const savedOrb = localStorage.getItem('voice_orb_color');
+        if (savedOrb && /^#[0-9A-Fa-f]{6}$/.test(savedOrb)) {
+          state.orbColor = savedOrb;
+          colorHSL.orb = hexToHsl(savedOrb);
+        }
+      } catch (e) {}
+    }
+
+    function savePreferences() {
+      try {
+        localStorage.setItem('voice_orb_style', state.animationStyle || 'mouth');
+        localStorage.setItem('voice_orb_bg', state.bgColor);
+        localStorage.setItem('voice_orb_color', state.orbColor);
+      } catch (e) {}
+    }
+
+    window.handleAndroidBack = function() {
+      if (state.isMicActive) {
+        stopMicrophone();
+        return true;
+      }
+      return false;
+    };
+
+    // Init
+    loadSavedPreferences();
+    applyColors();
+    resizeCanvas();
+    updateUIState();
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>
