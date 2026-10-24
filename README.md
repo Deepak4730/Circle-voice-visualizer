@@ -1,6 +1,14 @@
 # Circle-voice-visualizer
 A minimalist voice-reactive app where a simple circle moves with your voice. Explore fluid animations, customize colors, and enjoy a little motion with a personality of its own.
 A little circle that comes alive
+## Preview
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-1.svg" alt="Idle app preview" width="220" />
+  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-2.svg" alt="Customization screen preview" width="220" />
+  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-3.svg" alt="Color controls preview" width="220" />
+  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-4.svg" alt="Waveform preview" width="220" />
+</div>
 
 What if a simple circle could respond to your voice?
 
