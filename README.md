@@ -5,12 +5,7 @@ A little circle that comes alive
 
 ## Preview
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-1.svg" alt="Idle app preview" width="220" />
-  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-2.svg" alt="Customization screen preview" width="220" />
-  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-3.svg" alt="Color controls preview" width="220" />
-  <img src="https://raw.githubusercontent.com/Deepak4730/Circle-voice-visualizer/main/assets/preview-4.svg" alt="Waveform preview" width="220" />
-</p>
+
 
 What if a simple circle could respond to your voice?
 
