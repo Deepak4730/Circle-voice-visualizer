@@ -4,10 +4,9 @@ A minimalist voice-reactive app where a simple circle moves with your voice. Exp
 ## Preview
 
 <p align="center">
-  <img src="assets/preview-1.svg" alt="Idle app preview" width="220" />
-  <img src="assets/preview-2.svg" alt="Customization screen preview" width="220" />
-  <img src="assets/preview-3.svg" alt="Color controls preview" width="220" />
-  <img src="assets/preview-4.svg" alt="Waveform preview" width="220" />
+  <img src="assets/Screenshot_2026-10-24_13-42-05.png" alt="App preview 1" width="220" />
+  <img src="assets/Screenshot_2026-10-24_13-42-28.png" alt="App preview 2" width="220" />
+  <img src="assets/Screenshot_2026-10-24-13-57-56-187_com.webapp.circle.jpg" alt="App preview 3" width="220" />
 </p>
 
 A little circle that comes alive
