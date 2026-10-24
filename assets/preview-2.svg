@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="1280" viewBox="0 0 640 1280">
+  <rect width="640" height="1280" fill="#0f1f2d"/>
+  <g>
+    <circle cx="320" cy="430" r="110" fill="#69c9ef"/>
+    <rect x="90" y="720" width="460" height="220" rx="30" fill="#f4f4f5"/>
+    <text x="130" y="780" fill="#2a2341" font-family="Georgia, serif" font-size="42" font-weight="700">Customisation</text>
+    <text x="130" y="845" fill="#2a2341" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="2">ANIMATION STYLE</text>
+    <rect x="130" y="875" width="120" height="60" rx="18" fill="#d8edf6"/>
+    <rect x="270" y="875" width="120" height="60" rx="18" fill="#e8e6ea"/>
+    <rect x="410" y="875" width="120" height="60" rx="18" fill="#e8e6ea"/>
+    <rect x="120" y="980" width="120" height="60" rx="18" fill="#e8e6ea"/>
+    <rect x="260" y="980" width="120" height="60" rx="18" fill="#e8e6ea"/>
+    <rect x="400" y="980" width="120" height="60" rx="18" fill="#e8e6ea"/>
+    <g fill="#2a2341" font-family="Georgia, serif" font-size="18" font-weight="600">
+      <text x="165" y="915">Living Mouth</text>
+      <text x="287" y="915">Liquid Energy</text>
+      <text x="439" y="915">Inner Glow</text>
+      <text x="159" y="1020">Rose Orb</text>
+      <text x="298" y="1020">Classic</text>
+      <text x="425" y="1020">Midnight</text>
+    </g>
+  </g>
+</svg>
