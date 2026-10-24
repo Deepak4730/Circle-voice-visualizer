@@ -3,11 +3,15 @@ A minimalist voice-reactive app where a simple circle moves with your voice. Exp
 
 ## Preview
 
-<p align="center">
-  <img src="assets/Screenshot_2026-10-24_13-42-05.png" alt="App preview 1" width="220" />
-  <img src="assets/Screenshot_2026-10-24_13-42-28.png" alt="App preview 2" width="220" />
-  <img src="assets/Screenshot_2026-10-24-13-57-56-187_com.webapp.circle.jpg" alt="App preview 3" width="220" />
-</p>
+<div align="center">
+  <div style="overflow-x: auto; white-space: nowrap; display: flex; gap: 12px; padding: 8px 0; scrollbar-width: thin;">
+    <img src="assets/Screenshot_2026-10-24_13-42-05.png" alt="App preview 1" width="220" style="display: inline-block; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15);" />
+    <img src="assets/Screenshot_2026-10-24_13-42-28.png" alt="App preview 2" width="220" style="display: inline-block; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15);" />
+    <img src="assets/Screenshot_2026-10-24-13-57-56-187_com.webapp.circle.jpg" alt="App preview 3" width="220" style="display: inline-block; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15);" />
+    <img src="assets/Screenshot_2026-10-24-16-29-30-719_com.webapp.circle.jpg" alt="App preview 4" width="220" style="display: inline-block; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15);" />
+    <img src="assets/Screenshot_2026-10-24-16-31-15-759_com.webapp.circle.jpg" alt="App preview 5" width="220" style="display: inline-block; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.15);" />
+  </div>
+</div>
 
 A little circle that comes alive
 
