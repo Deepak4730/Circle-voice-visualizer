@@ -1,2 +1,13 @@
 # Circle-voice-visualizer
-Really it is a very simple app there is a breathing circle and when you click on it it becomes 4 rounded pillars which expand and contractors with your voice you can change the colour of the background circle and animation there are three types of visuals for the 4 rounded pillars 
+A minimalist voice-reactive app where a simple circle moves with your voice. Explore fluid animations, customize colors, and enjoy a little motion with a personality of its own.
+A little circle that comes alive
+
+What if a simple circle could respond to your voice?
+
+This app turns your voice into motion, bringing a clean, minimal interface to life through smooth, voice-reactive animations. Speak, and watch the circle move and stretch with the rhythm of your voice. Stop speaking, and it settles into a calm, gentle state, ready for the next word.
+
+Choose from different animation styles, experiment with colors, and create a look that feels right for you. Whether you prefer fluid, energetic movement or something soft and subtle, the experience is yours to shape.
+
+Designed to keep distractions away, the app puts one thing at the center: the connection between your voice and what you see. No crowded interface, no unnecessary clutter. Just a little circle, a few beautiful movements, and a surprisingly lively personality.
+
+Simple to look at. Fun to bring to life. A tiny world of motion, shaped by your voice.
