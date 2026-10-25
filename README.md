@@ -34,6 +34,3 @@ Choose from different animation styles, experiment with colors, and create a loo
 Designed to keep distractions away, the app puts one thing at the center: the connection between your voice and what you see. No crowded interface, no unnecessary clutter. Just a little circle, a smooth response, and a playful sense of motion.
 
 Simple to look at. Fun to bring to life. A tiny world of motion, shaped by your voice.
-
-this is a web version of the app which you can access through your browser 
-https://deepak4730.github.io/Circle-voice-visualizer/
